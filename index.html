@@ -1912,6 +1912,28 @@
                 viewport.scrollLeft = scrollLeft - walkX;
                 viewport.scrollTop = scrollTop - walkY;
             });
+
+            // 触摸事件支持 (手机端)
+            viewport.addEventListener('touchstart', (e) => {
+                isDown = true;
+                startX = e.touches[0].pageX - viewport.offsetLeft;
+                startY = e.touches[0].pageY - viewport.offsetTop;
+                scrollLeft = viewport.scrollLeft;
+                scrollTop = viewport.scrollTop;
+            }, { passive: false });
+
+            viewport.addEventListener('touchend', () => { isDown = false; });
+
+            viewport.addEventListener('touchmove', (e) => {
+                if (!isDown) return;
+                if (e.cancelable) e.preventDefault(); // 防止触发默认滚动
+                const x = e.touches[0].pageX - viewport.offsetLeft;
+                const y = e.touches[0].pageY - viewport.offsetTop;
+                const walkX = (x - startX) * 1.5; 
+                const walkY = (y - startY) * 1.5;
+                viewport.scrollLeft = scrollLeft - walkX;
+                viewport.scrollTop = scrollTop - walkY;
+            }, { passive: false });
             
             // 初始居中
             viewport.scrollLeft = (1200 - viewport.clientWidth) / 2;
