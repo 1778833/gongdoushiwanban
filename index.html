@@ -2390,31 +2390,21 @@
             const interactArea = document.getElementById('emp-interaction-area');
             interactArea.innerHTML = '';
 
-            // 如果在寝殿或晚上，可以互动
-            if (loc === '寝殿' || STATE.time.timeSlot >= 4) {
-                const btn = document.createElement('button');
-                btn.className = 'btn';
-                btn.style.width = '100%';
-                btn.innerText = '侍奉皇上';
-                btn.onclick = () => interactWithEmperor('侍寝'); // 普通侍寝（非翻牌）
-                interactArea.appendChild(btn);
-            } else {
-                // 御书房等地
-                const btn1 = document.createElement('button');
-                btn1.className = 'btn btn-secondary';
-                btn1.style.width = '100%';
-                btn1.style.marginBottom = '10px';
-                btn1.innerText = '红袖添香';
-                btn1.onclick = () => interactWithEmperor('伴读');
-                interactArea.appendChild(btn1);
-                
-                const btn2 = document.createElement('button');
-                btn2.className = 'btn btn-secondary';
-                btn2.style.width = '100%';
-                btn2.innerText = '送上参汤';
-                btn2.onclick = () => interactWithEmperor('送汤');
-                interactArea.appendChild(btn2);
-            }
+            // 普通互动选项
+            const btn1 = document.createElement('button');
+            btn1.className = 'btn btn-secondary';
+            btn1.style.width = '100%';
+            btn1.style.marginBottom = '10px';
+            btn1.innerText = '红袖添香';
+            btn1.onclick = () => interactWithEmperor('伴读');
+            interactArea.appendChild(btn1);
+            
+            const btn2 = document.createElement('button');
+            btn2.className = 'btn btn-secondary';
+            btn2.style.width = '100%';
+            btn2.innerText = '送上参汤';
+            btn2.onclick = () => interactWithEmperor('送汤');
+            interactArea.appendChild(btn2);
 
             document.getElementById('emperor-detail-modal').style.display = 'flex';
         }
@@ -2864,6 +2854,12 @@
         }
 
         function openLocationDetail(locName) {
+            // 侍寝特殊处理：如果被翻牌子，点击养心殿直接进入侍寝
+            if (locName === '养心殿' && STATE.emperor.state === '等待侍寝' && STATE.shiqin.pending) {
+                openShiQin();
+                return;
+            }
+
             // 重置关闭按钮显示
             document.querySelector('.loc-close').style.display = 'flex';
 
