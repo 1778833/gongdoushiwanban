@@ -1264,9 +1264,9 @@
                 <h2 style="color: #d81b60;">侍寝</h2>
                 <div style="font-size: 0.9rem; color: #666; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 4px; margin-bottom: 10px;">
                     <strong>规则：</strong><br>
-                    1. 初始兴致0%，每次互动随机增加10%-25%。<br>
+                    1. 初始兴致0%，每次互动随机增加15%-30%。<br>
                     2. 共有4次互动机会，机会用完或兴致满100%后可就寝。<br>
-                    3. 兴致越高，获得的圣宠越多。兴致满100%有额外加成。<br>
+                    3. 兴致越高，获得的圣宠越多。最高可获8点圣宠。<br>
                     4. 侍寝后次日有概率怀孕（需开启怀孕系统）。
                 </div>
                 <div style="display: flex; justify-content: center; align-items: center; gap: 20px;">
@@ -2423,6 +2423,35 @@
             document.getElementById('shiqin-modal').style.display = 'flex';
         }
 
+        // 本地侍寝剧情库
+        const LOCAL_SHIQIN_STORIES = {
+            'flirt': [
+                "你眼波流转，含情脉脉地注视着皇上。皇上被你看得心神荡漾，伸手轻轻刮了刮你的鼻尖，笑道：“爱妃今日这般看着朕，可是有什么心事？”你抿嘴一笑，并未言语，只将头轻轻靠在皇上肩头，惹得皇上开怀大笑。",
+                "灯下看美人，越看越动人。你那一双剪水秋瞳中满是深情，皇上与你对视片刻，不禁感叹道：“爱妃这双眼睛，当真是勾魂摄魄。”说罢，便将你揽入怀中，细细把玩你的青丝。",
+                "你微微侧首，目光如丝般缠绕在皇上身上。皇上察觉到你的视线，放下手中的书卷，回以温柔一笑。此时无声胜有声，暖阁内的气氛顿时变得旖旎起来。"
+            ],
+            'talk': [
+                "你依偎在皇上身侧，轻声细语地说起宫中趣事。皇上听得津津有味，时而点头，时而发笑。你见皇上心情大好，便又说了些家乡的见闻，皇上听后感叹道：“朕久居深宫，倒是不如爱妃见多识广。”",
+                "你温言软语，询问皇上今日政务是否劳累。皇上叹了口气，握着你的手道：“前朝琐事繁多，唯有到了爱妃这里，朕才能得片刻清闲。”你柔声宽慰，令皇上眉头渐渐舒展。",
+                "夜色静谧，你与皇上闲话家常。从诗词歌赋谈到人生理想，皇上惊讶于你的见解，赞道：“爱妃不仅容貌出众，这才情也是后宫少有。”"
+            ],
+            'serve': [
+                "你起身走到案前，素手研墨，红袖添香。皇上看着你专注的侧脸，心中一动，放下朱笔，握住你的手道：“这些粗活让下人做便是，朕怎舍得累着爱妃。”",
+                "你为皇上斟了一杯热茶，双手奉上。皇上接过茶盏，指尖轻轻划过你的手背，笑道：“爱妃亲手泡的茶，果然比御膳房的要香醇许多。”",
+                "见皇上批阅奏折略显疲态，你上前轻轻为他整理案上的文书。皇上顺势拉住你的手，将你带入怀中，低声道：“有爱妃红袖添香，朕便是再忙些也无妨。”"
+            ],
+            'dance': [
+                "你起身来到殿中，随着宫乐翩翩起舞。长袖善舞，身姿曼妙，宛如月下仙子。皇上看得如痴如醉，待一曲舞毕，竟还回不过神来，连声赞道：“此舞只应天上有，人间难得几回闻。”",
+                "你为皇上献上一曲《惊鸿舞》，腰肢柔软，步步生莲。皇上眼中满是惊艳之色，待你停下时，亲自上前扶起你，笑道：“爱妃这一舞，朕心甚悦。”",
+                "烛光摇曳，你随兴而舞，虽无丝竹伴奏，却别有一番风韵。皇上看得兴起，竟亲自为你击节助兴。一舞终了，你微喘着气靠在皇上怀中，面若桃花。"
+            ],
+            'massage': [
+                "你见皇上肩颈僵硬，便主动上前为他推拿按摩。你力道适中，手法娴熟，皇上舒服地闭上了眼睛，赞道：“爱妃这手艺，比太医院的那些老家伙强多了。”",
+                "你轻轻揉捏着皇上的太阳穴，为他缓解头痛。皇上眉头舒展，握住你的手放在唇边亲吻，道：“爱妃真是朕的解语花。”",
+                "你为皇上捶腿捏肩，动作轻柔。皇上享受着你的服侍，渐渐放松下来，笑道：“有爱妃在侧，朕这一身的疲乏都消散了。”"
+            ]
+        };
+
         async function handleShiQinAction(action) {
             if (STATE.shiqin.chances <= 0) {
                 showToast("互动机会已用完，请安寝。");
@@ -2438,7 +2467,7 @@
             document.getElementById('shiqin-mood-text').innerText = STATE.emperor.mood + '%';
             document.getElementById('shiqin-chances').innerText = STATE.shiqin.chances;
 
-            // AI生成剧情
+            // 剧情生成逻辑
             const actionNames = {
                 'flirt': '含情脉脉地看着皇上',
                 'talk': '与皇上温言软语',
@@ -2447,24 +2476,47 @@
                 'massage': '为皇上推拿按摩'
             };
             
-            const context = {
-                player: STATE.player.name,
-                action: actionNames[action],
-                emperor: STATE.emperor,
-                currentMood: STATE.emperor.mood
-            };
-
-            const systemPrompt = "你是一个宫斗游戏剧情生成器。请根据玩家的互动动作和皇帝当前的兴致，生成一段不少于100字的侍寝互动剧情。描写要细腻、古风，体现出两人的互动和皇帝的反应。";
-            const userPrompt = JSON.stringify(context);
-
             document.getElementById('shiqin-story').innerText = "（剧情生成中...）";
 
-            try {
-                const story = await callAI(systemPrompt, userPrompt);
-                document.getElementById('shiqin-story').innerText = story;
-            } catch (e) {
-                document.getElementById('shiqin-story').innerText = `你${actionNames[action]}，皇上看起来颇为受用。（AI生成失败）`;
+            // 优先尝试AI生成，如果失败或未配置，则使用本地库
+            let story = "";
+            
+            // 检查是否有API Key
+            if (STATE.settings.apiKey) {
+                const context = {
+                    player: STATE.player.name,
+                    action: actionNames[action],
+                    emperor: STATE.emperor,
+                    currentMood: STATE.emperor.mood
+                };
+                const systemPrompt = "你是一个宫斗游戏剧情生成器。请根据玩家的互动动作和皇帝当前的兴致，生成一段不少于100字的侍寝互动剧情。描写要细腻、古风，体现出两人的互动和皇帝的反应。";
+                const userPrompt = JSON.stringify(context);
+
+                try {
+                    // 设置超时，防止一直卡住
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Timeout')), 5000)
+                    );
+                    story = await Promise.race([
+                        callAI(systemPrompt, userPrompt),
+                        timeoutPromise
+                    ]);
+                } catch (e) {
+                    console.log("AI生成失败，转为本地生成", e);
+                }
             }
+
+            // 如果AI生成失败（story为空），使用本地库
+            if (!story) {
+                const stories = LOCAL_SHIQIN_STORIES[action];
+                if (stories && stories.length > 0) {
+                    story = stories[Math.floor(Math.random() * stories.length)];
+                } else {
+                    story = `你${actionNames[action]}，皇上看起来颇为受用。`;
+                }
+            }
+
+            document.getElementById('shiqin-story').innerText = story;
         }
 
         function generateBedStory(favor, rankIdx) {
@@ -2489,21 +2541,16 @@
         function finishShiQin() {
             document.getElementById('shiqin-modal').style.display = 'none';
             
-            // 1. 结算属性
-            let favorGain = 10;
-            if (STATE.emperor.mood >= 100) favorGain += 10;
-            else if (STATE.emperor.mood >= 80) favorGain += 5;
-            
-            // 偏好加成
-            const likeMap = {
-                "容貌": "charm", "才情": "intelligence", "体质": "health", 
-                "交际": "social", "心机": "scheme", "福运": "luck"
-            };
-            const likeStat = likeMap[STATE.emperor.like];
-            if (likeStat && STATE.player.stats[likeStat] > 500) {
-                favorGain += 5;
-                showToast(`皇上喜爱你的${STATE.emperor.like}，圣宠额外+5`);
-            }
+            // 1. 结算属性 (根据兴致增加，最高不超过8)
+            let favorGain = 0;
+            if (STATE.emperor.mood >= 90) favorGain = 8;
+            else if (STATE.emperor.mood >= 70) favorGain = 6;
+            else if (STATE.emperor.mood >= 50) favorGain = 4;
+            else if (STATE.emperor.mood >= 30) favorGain = 2;
+            else favorGain = 1;
+
+            // 确保不超过8 (虽然上面逻辑已经控制了，但为了保险)
+            favorGain = Math.min(8, favorGain);
 
             STATE.player.favor += favorGain;
             
@@ -2719,42 +2766,28 @@
             document.getElementById('emperor-detail-modal').style.display = 'none';
             
             // 互动逻辑
-            let favorGain = 0;
+            let favorGain = 1; // 固定加1
             let msg = "";
             
-            // 偏好加成
-            const likeMap = {
-                "容貌": "charm", "才情": "intelligence", "体质": "health", 
-                "交际": "social", "心机": "scheme", "福运": "luck"
-            };
-            const likeStat = likeMap[STATE.emperor.like];
-            let bonus = 0;
-            if (likeStat && STATE.player.stats[likeStat] > 500) {
-                bonus = 2;
-            }
-
             if (type === '侍寝') {
                 // 如果不是翻牌子进来的，进入普通侍寝流程（复用openShiQin）
                 openShiQin();
                 return;
             } else if (type === '伴读') {
                 if (STATE.player.stats.intelligence > 100) {
-                    favorGain = 5 + bonus;
                     msg = "你见解独到，皇上颇为赞赏。";
                 } else {
-                    favorGain = 1;
                     msg = "你在旁静静研墨，皇上专心政务。";
                 }
             } else if (type === '送汤') {
                 if (Math.random() > 0.5) {
-                    favorGain = 3 + bonus;
                     msg = "皇上喝了汤，夸赞你手艺不错。";
                 } else {
+                    // 送汤失败不加圣宠
                     favorGain = 0;
                     msg = "皇上正忙，让公公收下了汤。";
                 }
             } else if (type === '偶遇') {
-                favorGain = 2 + bonus;
                 msg = "皇上对你微微一笑，似乎心情不错。";
             }
 
