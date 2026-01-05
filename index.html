@@ -2244,14 +2244,14 @@
                 STATE.emperor.location = "太和殿"; // 上朝
                 STATE.emperor.state = "早朝";
             } else if (slot === 1 || slot === 3) {
-                // 上午/下午：大概率在御书房，小概率去其他地方
-                if (r < 0.6) {
+                // 上午/下午：极大在御书房
+                if (r < 0.85) {
                     STATE.emperor.location = "御书房";
                     STATE.emperor.state = "批阅奏折";
-                } else if (r < 0.8) {
+                } else if (r < 0.90) {
                     STATE.emperor.location = "御花园";
                     STATE.emperor.state = "赏花散心";
-                } else if (r < 0.9) {
+                } else if (r < 0.95) {
                     STATE.emperor.location = "慈宁宫";
                     STATE.emperor.state = "给太后请安";
                 } else {
@@ -2260,7 +2260,7 @@
                 }
             } else if (slot === 2) {
                 // 午时
-                if (r < 0.7) {
+                if (r < 0.9) {
                     STATE.emperor.location = "养心殿"; // 午休
                     STATE.emperor.state = "午膳/小憩";
                 } else {
@@ -2368,7 +2368,7 @@
             const inYangXinDian = ["养心殿", "御书房", "东暖阁", "西暖阁", "寝殿"].includes(loc);
             
             if (!inYangXinDian) {
-                alert(`公公拦住了你：“小主请回吧，皇上此时正在${loc}${emp.state}呢，不在养心殿。”`);
+                alert(`公公拦住了你：“皇上此时不在养心殿，正在【${loc}】${emp.state}，小主请下个时段再来吧。”`);
                 return;
             }
 
@@ -2958,6 +2958,12 @@
                 return;
             }
 
+            // 特殊动作拦截
+            if (action.name === '觐见皇上') {
+                openYangXinDian();
+                return;
+            }
+
             // 预先计算随机事件（不立即应用，等主逻辑完成后叠加）
             // 冷宫中不触发普通随机事件
             let randomEvent = null;
@@ -2992,13 +2998,6 @@
 
             // 储秀宫寝宫专属训练逻辑
             if (action.type === 'train') {
-                // 检查是否在寝宫
-                const activeSub = document.querySelector('.sub-loc-item.active');
-                if (locName === '储秀宫' && (!activeSub || activeSub.innerText !== '寝宫')) {
-                    showToast("请先切换至【寝宫】区域");
-                    return;
-                }
-                
                 const gain = Math.floor(Math.random() * 5) + 1;
                 STATE.player.stats[action.stat] = Math.min(1000, STATE.player.stats[action.stat] + gain);
                 
@@ -3033,7 +3032,9 @@
             }
 
             // AI 生成事件
-            document.getElementById('explore-text').innerText = "正在生成随机事件...";
+            // 确保弹窗显示并清空旧内容
+            document.getElementById('explore-title').innerText = "随机事件";
+            document.getElementById('explore-text').innerText = "正在生成随机事件，请稍候...";
             document.getElementById('explore-result-modal').style.display = 'block';
 
             // 准备上下文
@@ -3121,8 +3122,12 @@
                 updateProfileView();
 
             } catch (e) {
-                document.getElementById('explore-text').innerText = "事件生成失败，请检查网络或API设置。";
+                document.getElementById('explore-text').innerText = "事件生成失败，请检查网络或API设置。\n\n(系统自动执行默认操作)";
                 console.error(e);
+                // 失败时的默认反馈
+                addLog(`在${locName}${action.name}。`);
+                advanceTime();
+                updateProfileView();
             }
         }
 
