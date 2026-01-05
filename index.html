@@ -3064,6 +3064,11 @@
             // 确保弹窗显示并清空旧内容
             document.getElementById('explore-title').innerText = "随机事件";
             document.getElementById('explore-text').innerText = "正在生成随机事件，请稍候...";
+            
+            // 隐藏确定按钮，防止用户提前关闭
+            const confirmBtn = document.querySelector('#explore-result-modal .btn');
+            if (confirmBtn) confirmBtn.style.display = 'none';
+
             document.getElementById('explore-result-modal').style.display = 'block';
 
             // 准备上下文
@@ -3157,6 +3162,10 @@
                 addLog(`在${locName}${action.name}。`);
                 advanceTime();
                 updateProfileView();
+            } finally {
+                // 恢复按钮显示并确保弹窗可见
+                if (confirmBtn) confirmBtn.style.display = 'inline-block';
+                document.getElementById('explore-result-modal').style.display = 'block';
             }
         }
 
