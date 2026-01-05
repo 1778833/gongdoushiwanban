@@ -2815,23 +2815,56 @@
                 return;
             }
 
-            const nextRank = RANKS[currentRankIdx - 1];
+            let targetRankIdx = currentRankIdx - 1;
+            let isFourFeiPromotion = false;
+
+            // 特殊逻辑：妃(7) -> 四妃(3,4,5,6)
+            if (currentRankIdx === 7) {
+                isFourFeiPromotion = true;
+                // 默认目标设为贤妃(3)用于获取条件，实际晋升时会找空位
+                targetRankIdx = 3;
+            } 
+            // 特殊逻辑：四妃(3,4,5,6) -> 贵妃(2)
+            else if (currentRankIdx >= 3 && currentRankIdx <= 6) {
+                targetRankIdx = 2;
+            }
+
+            const nextRank = RANKS[targetRankIdx];
             const currentFavor = STATE.player.favor;
             const allStatsQualified = Object.values(STATE.player.stats).every(val => val >= nextRank.minStat);
             
             // 检查目标位份是否满员
-            const count = STATE.concubines.filter(c => c.rank === (currentRankIdx - 1)).length;
-            const isFull = count >= nextRank.limit;
+            let isFull = false;
+            
+            if (isFourFeiPromotion) {
+                 // 妃升四妃：检查所有四妃位置是否都满了
+                 const fourFeiIndices = [3, 4, 5, 6];
+                 const totalOccupied = STATE.concubines.filter(c => fourFeiIndices.includes(c.rank)).length;
+                 if (totalOccupied >= 4) {
+                     isFull = true;
+                 }
+            } else {
+                const count = STATE.concubines.filter(c => c.rank === targetRankIdx).length;
+                isFull = count >= nextRank.limit;
+            }
             
             if (currentFavor >= nextRank.minFavor && allStatsQualified) {
                 if (isFull) {
                     btn.disabled = true;
                     btn.className = "btn btn-secondary";
-                    btn.innerText = `${nextRank.name}位份已满`;
+                    if (isFourFeiPromotion) {
+                        btn.innerText = `四妃位份已满`;
+                    } else {
+                        btn.innerText = `${nextRank.name}位份已满`;
+                    }
                 } else {
                     btn.disabled = false;
                     btn.className = "btn"; // 激活样式
-                    btn.innerText = `晋升${nextRank.name}`;
+                    if (isFourFeiPromotion) {
+                         btn.innerText = `晋升四妃`;
+                    } else {
+                         btn.innerText = `晋升${nextRank.name}`;
+                    }
                 }
             } else {
                 btn.disabled = true;
@@ -2844,10 +2877,28 @@
             const currentRankIdx = STATE.player.rank;
             if (currentRankIdx <= 0) return;
 
-            const nextRank = RANKS[currentRankIdx - 1];
+            let targetRankIdx = currentRankIdx - 1;
+
+            // 特殊逻辑：妃(7) -> 四妃(3,4,5,6)
+            if (currentRankIdx === 7) {
+                const fourFeiIndices = [3, 4, 5, 6]; // 贤良淑德
+                for (let idx of fourFeiIndices) {
+                    const count = STATE.concubines.filter(c => c.rank === idx).length;
+                    if (count < RANKS[idx].limit) {
+                        targetRankIdx = idx;
+                        break;
+                    }
+                }
+            } 
+            // 特殊逻辑：四妃(3,4,5,6) -> 贵妃(2)
+            else if (currentRankIdx >= 3 && currentRankIdx <= 6) {
+                targetRankIdx = 2;
+            }
+
+            const nextRank = RANKS[targetRankIdx];
             
             // 执行晋升
-            STATE.player.rank--;
+            STATE.player.rank = targetRankIdx;
             addLog(`晋升为${nextRank.name}。`);
             
             // 生成圣旨内容
@@ -3027,7 +3078,7 @@
 
             // 储秀宫寝宫专属训练逻辑
             if (action.type === 'train') {
-                const gain = Math.floor(Math.random() * 5) + 1;
+                const gain = Math.floor(Math.random() * 7) + 2;
                 STATE.player.stats[action.stat] = Math.min(1000, STATE.player.stats[action.stat] + gain);
                 
                 advanceTime();
