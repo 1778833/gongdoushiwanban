@@ -1953,44 +1953,44 @@
 
         // 九品二十七级位份表 (更新晋升数值：每项属性都需达标)
         const RANKS = [
-            { name: "皇后", level: "超品", condition: "母仪天下，统摄六宫", limit: 1, minFavor: 280, minStat: 900 },
-            { name: "皇贵妃", level: "正一品", condition: "位同副后，协理六宫", limit: 1, minFavor: 250, minStat: 850 },
-            { name: "贵妃", level: "从一品", condition: "资历深厚，圣宠优渥", limit: 2, minFavor: 220, minStat: 800 },
-            { name: "贤妃", level: "庶一品", condition: "四妃之首，德才兼备", limit: 1, minFavor: 190, minStat: 750 },
-            { name: "良妃", level: "庶一品", condition: "四妃之次，温良恭俭", limit: 1, minFavor: 190, minStat: 750 },
-            { name: "淑妃", level: "庶一品", condition: "四妃之三，淑慎其身", limit: 1, minFavor: 190, minStat: 750 },
-            { name: "德妃", level: "庶一品", condition: "四妃之末，德行出众", limit: 1, minFavor: 190, minStat: 750 },
+            { name: "皇后", level: "超品", condition: "母仪天下，统摄六宫", limit: 1, minFavor: 350, minStat: 900 },
+            { name: "皇贵妃", level: "正一品", condition: "位同副后，协理六宫", limit: 1, minFavor: 320, minStat: 820 },
+            { name: "贵妃", level: "从一品", condition: "资历深厚，圣宠优渥", limit: 2, minFavor: 290, minStat: 750 },
+            { name: "贤妃", level: "庶一品", condition: "四妃之首，德才兼备", limit: 1, minFavor: 260, minStat: 680 },
+            { name: "良妃", level: "庶一品", condition: "四妃之次，温良恭俭", limit: 1, minFavor: 260, minStat: 680 },
+            { name: "淑妃", level: "庶一品", condition: "四妃之三，淑慎其身", limit: 1, minFavor: 260, minStat: 680 },
+            { name: "德妃", level: "庶一品", condition: "四妃之末，德行出众", limit: 1, minFavor: 260, minStat: 680 },
             
-            { name: "妃", level: "正二品", condition: "诞育皇嗣，或家世显赫", limit: 6, minFavor: 160, minStat: 700 },
-            { name: "昭仪", level: "从二品", condition: "九嫔之首，礼仪娴熟", limit: 9, minFavor: 140, minStat: 650 },
-            { name: "修仪", level: "庶二品", condition: "辅佐宫务，恪尽职守", limit: 9, minFavor: 140, minStat: 650 },
+            { name: "妃", level: "正二品", condition: "诞育皇嗣，或家世显赫", limit: 6, minFavor: 230, minStat: 620 },
+            { name: "昭仪", level: "从二品", condition: "九嫔之首，礼仪娴熟", limit: 9, minFavor: 200, minStat: 560 },
+            { name: "修仪", level: "庶二品", condition: "辅佐宫务，恪尽职守", limit: 9, minFavor: 200, minStat: 560 },
             
-            { name: "充仪", level: "正三品", condition: "充实后宫，仪态万方", limit: 9, minFavor: 120, minStat: 600 },
-            { name: "婕妤", level: "从三品", condition: "才情出众，颇得圣心", limit: 9, minFavor: 120, minStat: 600 },
-            { name: "容华", level: "庶三品", condition: "容貌端庄，举止得体", limit: 9, minFavor: 120, minStat: 600 },
+            { name: "充仪", level: "正三品", condition: "充实后宫，仪态万方", limit: 9, minFavor: 170, minStat: 500 },
+            { name: "婕妤", level: "从三品", condition: "才情出众，颇得圣心", limit: 9, minFavor: 170, minStat: 500 },
+            { name: "容华", level: "庶三品", condition: "容貌端庄，举止得体", limit: 9, minFavor: 170, minStat: 500 },
             
-            { name: "婉仪", level: "正四品", condition: "温婉可人，性情柔顺", limit: 9, minFavor: 100, minStat: 550 },
-            { name: "芳仪", level: "从四品", condition: "芳华正茂，青春靓丽", limit: 9, minFavor: 100, minStat: 550 },
-            { name: "芬仪", level: "庶四品", condition: "芬芳吐艳，初露头角", limit: 9, minFavor: 100, minStat: 550 },
+            { name: "婉仪", level: "正四品", condition: "温婉可人，性情柔顺", limit: 9, minFavor: 140, minStat: 450 },
+            { name: "芳仪", level: "从四品", condition: "芳华正茂，青春靓丽", limit: 9, minFavor: 140, minStat: 450 },
+            { name: "芬仪", level: "庶四品", condition: "芬芳吐艳，初露头角", limit: 9, minFavor: 140, minStat: 450 },
             
-            { name: "嫔", level: "正五品", condition: "一宫主位，圣宠稳定", limit: 12, minFavor: 80, minStat: 500 },
-            { name: "小仪", level: "从五品", condition: "小心谨慎，侍奉勤勉", limit: 12, minFavor: 80, minStat: 500 },
-            { name: "小媛", level: "庶五品", condition: "小家碧玉，惹人怜爱", limit: 12, minFavor: 80, minStat: 500 },
+            { name: "嫔", level: "正五品", condition: "一宫主位，圣宠稳定", limit: 12, minFavor: 110, minStat: 400 },
+            { name: "小仪", level: "从五品", condition: "小心谨慎，侍奉勤勉", limit: 12, minFavor: 110, minStat: 400 },
+            { name: "小媛", level: "庶五品", condition: "小家碧玉，惹人怜爱", limit: 12, minFavor: 110, minStat: 400 },
             
-            { name: "贵人", level: "正六品", condition: "初得恩幸，略有薄名", limit: 9999, minFavor: 60, minStat: 400 },
-            { name: "才人", level: "从六品", condition: "才艺双绝，以才侍君", limit: 9999, minFavor: 50, minStat: 350 },
-            { name: "美人", level: "庶六品", condition: "貌美如花，以色侍君", limit: 9999, minFavor: 40, minStat: 300 },
+            { name: "贵人", level: "正六品", condition: "初得恩幸，略有薄名", limit: 9999, minFavor: 80, minStat: 350 },
+            { name: "才人", level: "从六品", condition: "才艺双绝，以才侍君", limit: 9999, minFavor: 70, minStat: 300 },
+            { name: "美人", level: "庶六品", condition: "貌美如花，以色侍君", limit: 9999, minFavor: 60, minStat: 250 },
             
-            { name: "常在", level: "正七品", condition: "入宫已久，安分守己", limit: 9999, minFavor: 30, minStat: 250 },
-            { name: "娘子", level: "从七品", condition: "初选入宫，位份低微", limit: 9999, minFavor: 20, minStat: 200 },
-            { name: "舞涓", level: "庶七品", condition: "舞姿曼妙，身轻如燕", limit: 9999, minFavor: 10, minStat: 150 },
+            { name: "常在", level: "正七品", condition: "入宫已久，安分守己", limit: 9999, minFavor: 50, minStat: 200 },
+            { name: "娘子", level: "从七品", condition: "初选入宫，位份低微", limit: 9999, minFavor: 40, minStat: 150 },
+            { name: "舞涓", level: "庶七品", condition: "舞姿曼妙，身轻如燕", limit: 9999, minFavor: 30, minStat: 120 },
             
-            { name: "选侍", level: "正八品", condition: "随侍左右，小心伺候", limit: 9999, minFavor: 5, minStat: 100 },
-            { name: "采女", level: "从八品", condition: "采选入宫，地位卑下", limit: 9999, minFavor: 0, minStat: 80 },
-            { name: "御女", level: "庶八品", condition: "御前侍奉，偶得临幸", limit: 9999, minFavor: 0, minStat: 60 },
+            { name: "选侍", level: "正八品", condition: "随侍左右，小心伺候", limit: 9999, minFavor: 20, minStat: 90 },
+            { name: "采女", level: "从八品", condition: "采选入宫，地位卑下", limit: 9999, minFavor: 10, minStat: 60 },
+            { name: "御女", level: "庶八品", condition: "御前侍奉，偶得临幸", limit: 9999, minFavor: 5, minStat: 40 },
             
-            { name: "答应", level: "正九品", condition: "初入宫闱，需得圣心", limit: 9999, minFavor: 0, minStat: 40 },
-            { name: "更衣", level: "从九品", condition: "更衣侍奉，地位卑微", limit: 9999, minFavor: 0, minStat: 20 },
+            { name: "答应", level: "正九品", condition: "初入宫闱，需得圣心", limit: 9999, minFavor: 0, minStat: 20 },
+            { name: "更衣", level: "从九品", condition: "更衣侍奉，地位卑微", limit: 9999, minFavor: 0, minStat: 10 },
             { name: "官女子", level: "庶九品", condition: "宫女出身，身份最低", limit: 9999, minFavor: 0, minStat: 0 }
         ];
 
