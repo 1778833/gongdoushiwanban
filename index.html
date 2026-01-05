@@ -1853,7 +1853,7 @@
 
         // 随机事件库
         const RANDOM_EVENTS = [
-            { text: "你在御花园散步，忽见一只五彩斑斓的鹦鹉飞过，心情大好。", effect: { mood: 5 } },
+            { text: "你在御花园散步，忽见一只五彩斑斓的鹦鹉飞过，心情大好。", effect: { health: 1 } },
             { text: "路过长街，听见两个小宫女在窃窃私语，似乎在议论某位娘娘的秘闻。", effect: { scheme: 2 } },
             { text: "今日阳光明媚，你觉得神清气爽，仿佛身体也轻盈了许多。", effect: { health: 2 } },
             { text: "内务府送来了一盆名贵的兰花，说是皇上特意赏赐的。", effect: { favor: 3 } },
@@ -1863,7 +1863,7 @@
             { text: "在湖边喂鱼，不小心湿了鞋袜。", effect: { health: -1 } },
             { text: "听闻前朝有大臣进谏，皇上心情似乎不佳。", effect: {} },
             { text: "宫中新排了一出戏，各宫娘娘都在议论。", effect: { social: 1 } },
-            { text: "你的盟友派人送来了一些家乡特产，聊表心意。", effect: { mood: 3 } },
+            { text: "你的盟友派人送来了一些家乡特产，聊表心意。", effect: { money: 20 } },
             { text: "听闻某位盟友在皇上面前夸赞了你。", effect: { favor: 2 } }
         ];
 
@@ -4962,6 +4962,11 @@
         }
 
         function handleFamilyAction() {
+            if (STATE.time.period === 2 && STATE.time.timeSlot >= 6) {
+                showToast("本月行动点已用尽");
+                return;
+            }
+
             const modal = document.getElementById('explore-result-modal');
             const title = document.getElementById('explore-title');
             const text = document.getElementById('explore-text');
@@ -5133,6 +5138,11 @@
                 return;
             }
 
+            if (STATE.banquetAttended) {
+                showToast("本月已参加过宴会");
+                return;
+            }
+
             const modal = document.getElementById('action-select-modal');
             const title = document.getElementById('action-select-title');
             const list = document.getElementById('action-select-list');
@@ -5168,6 +5178,7 @@
 
         function attendBanquet(art) {
             document.getElementById('action-select-modal').style.display = 'none';
+            STATE.banquetAttended = true;
             
             const baseScore = STATE.player.stats[art.stat];
             const rand = Math.floor(Math.random() * 50);
