@@ -2567,7 +2567,15 @@
                     STATE.player.pregnancyMonth = 0;
                     STATE.player.favor += 10; // 怀孕额外加宠
                     isPregnant = true;
-                    pregMsg = "\n\n【系统提示】恭喜小主！您已怀有身孕！";
+                    pregMsg = "\n\n【系统提示】恭喜小主！您已怀有身孕！(圣宠+10)";
+                    
+                    // 10%概率晋升
+                    if (Math.random() < 0.1 && STATE.player.rank > 0) {
+                        STATE.player.rank--;
+                        const newRank = RANKS[STATE.player.rank].name;
+                        pregMsg += `\n皇上龙颜大悦，特晋升你为${newRank}！`;
+                        addLog(`确诊喜脉，皇上龙颜大悦，晋升为${newRank}。`);
+                    }
                 } else {
                     pregMsg = "\n\n【系统提示】可惜，未能遇喜。";
                 }
@@ -2643,7 +2651,7 @@
             showToast(STATE.player.pregnancyEnabled ? "已开启怀孕" : "已关闭怀孕");
         }
 
-        function birthChild() {
+        function birthChild(isAuto = false) {
             STATE.player.isPregnant = false;
             STATE.player.pregnancyMonth = 0;
             
@@ -2654,7 +2662,7 @@
 
             if (roll < 0.05) { // 龙凤胎
                 children.push(createChild('男'), createChild('女'));
-                favorGain = 20;
+                favorGain = 15;
                 msg = "恭喜小主！诞下龙凤胎！皇上大喜！";
             } else if (roll < 0.20) { // 双胞胎 (15%)
                 const gender = Math.random() < 0.5 ? '男' : '女';
@@ -2674,13 +2682,24 @@
             STATE.player.children.push(...children);
             STATE.player.favor += favorGain;
             
-            addLog(`诞下${children.length}名子嗣，圣宠+${favorGain}。`);
+            // 属性增加
+            ['charm', 'intelligence', 'health', 'social', 'scheme', 'luck'].forEach(stat => {
+                STATE.player.stats[stat] = Math.min(1000, STATE.player.stats[stat] + 3);
+            });
+
+            const logMsg = `诞下${children.length}名子嗣，圣宠+${favorGain}，全属性+3。`;
+            addLog(logMsg);
             
-            document.getElementById('explore-title').innerText = "喜得贵子";
-            document.getElementById('explore-text').innerText = msg + `\n\n(圣宠+${favorGain})`;
-            document.getElementById('explore-result-modal').style.display = 'block';
-            
-            updatePromotionButton();
+            const fullMsg = msg + `\n\n(圣宠+${favorGain}，全属性+3)`;
+
+            if (isAuto) {
+                return fullMsg;
+            } else {
+                document.getElementById('explore-title').innerText = "喜得贵子";
+                document.getElementById('explore-text').innerText = fullMsg;
+                document.getElementById('explore-result-modal').style.display = 'block';
+                updatePromotionButton();
+            }
         }
 
         function createChild(gender) {
@@ -2839,12 +2858,12 @@
             if (isFourFeiPromotion) {
                  // 妃升四妃：检查所有四妃位置是否都满了
                  const fourFeiIndices = [3, 4, 5, 6];
-                 const totalOccupied = STATE.concubines.filter(c => fourFeiIndices.includes(c.rank)).length;
+                 const totalOccupied = STATE.concubines.filter(c => fourFeiIndices.includes(c.rank) && !c.dead && c.state !== '暴毙' && c.state !== '冷宫').length;
                  if (totalOccupied >= 4) {
                      isFull = true;
                  }
             } else {
-                const count = STATE.concubines.filter(c => c.rank === targetRankIdx).length;
+                const count = STATE.concubines.filter(c => c.rank === targetRankIdx && !c.dead && c.state !== '暴毙' && c.state !== '冷宫').length;
                 isFull = count >= nextRank.limit;
             }
             
@@ -2883,7 +2902,7 @@
             if (currentRankIdx === 7) {
                 const fourFeiIndices = [3, 4, 5, 6]; // 贤良淑德
                 for (let idx of fourFeiIndices) {
-                    const count = STATE.concubines.filter(c => c.rank === idx).length;
+                    const count = STATE.concubines.filter(c => c.rank === idx && !c.dead && c.state !== '暴毙' && c.state !== '冷宫').length;
                     if (count < RANKS[idx].limit) {
                         targetRankIdx = idx;
                         break;
@@ -4512,6 +4531,22 @@
         async function processNextMonth(type) {
             document.getElementById('month-summary-modal').style.display = 'none';
 
+            // 0. 玩家怀孕进度更新
+            let birthMsg = "";
+            if (STATE.player.isPregnant) {
+                STATE.player.pregnancyMonth++;
+                if (STATE.player.pregnancyMonth >= 10) {
+                    birthMsg = birthChild(true);
+                    
+                    // 旧档超时补偿检测
+                    if (STATE.player.pregnancyMonth > 10) {
+                        STATE.player.money += 500;
+                        birthMsg += "<br><br><strong>【系统补偿】</strong><br>检测到您怀孕超过期限，补偿您500两银两，权当对旧档玩家的补偿了。";
+                        addLog("检测到怀孕超期，获得补偿银两500两。");
+                    }
+                }
+            }
+
             // 1. 推进时间
             STATE.time.month++;
             if (STATE.time.month > 12) {
@@ -4520,6 +4555,59 @@
             }
             STATE.time.period = 0;
             STATE.time.timeSlot = 0;
+            
+            // 重置每月状态
+            STATE.banquetAttended = false;
+
+            // 选秀逻辑：每三年一月触发
+            let draftMsg = "";
+            if (STATE.time.year % 3 === 0 && STATE.time.month === 1) {
+                const newCount = Math.floor(Math.random() * 6) + 5; // 5-10人
+                let addedCount = 0;
+                
+                for (let i = 0; i < newCount; i++) {
+                    // 随机位份：美人(21)及以下
+                    const rankIdx = Math.floor(Math.random() * 9) + 21; // 21-29 (美人到官女子)
+                    
+                    // 检查位份限制
+                    const currentCount = STATE.concubines.filter(c => c.rank === rankIdx && !c.dead && c.state !== '暴毙' && c.state !== '冷宫').length;
+                    if (currentCount < RANKS[rankIdx].limit) {
+                        const name = generateRandomName('female');
+                        const trait = CONCUBINE_TRAITS[Math.floor(Math.random() * CONCUBINE_TRAITS.length)];
+                        const charm = Math.floor(Math.random() * 800) + 100;
+                        const mood = Math.floor(Math.random() * 100);
+                        const id = STATE.concubines.length > 0 ? Math.max(...STATE.concubines.map(c => c.id)) + 1 : 0;
+                        
+                        STATE.concubines.push({
+                            id: id + i, // 简单ID生成
+                            name,
+                            rank: rankIdx,
+                            trait,
+                            charm,
+                            mood,
+                            state: "正常",
+                            avatarSeed: Math.random(),
+                            favor: Math.floor(Math.random() * 50),
+                            affection: 0,
+                            scheme: Math.floor(Math.random() * 500) + 50,
+                            health: Math.floor(Math.random() * 100) + 50,
+                            isPregnant: false,
+                            pregnancyMonth: 0,
+                            dead: false,
+                            disfigured: false,
+                            unread: true // 标记为新人
+                        });
+                        addedCount++;
+                    }
+                }
+                
+                if (addedCount > 0) {
+                    draftMsg = `<br><br><strong>【选秀大典】</strong><br>本月举行了三年一度的选秀，共有${addedCount}位新人入宫。`;
+                    addLog(`三年一度选秀，${addedCount}位新人入宫。`);
+                    // 重新排序
+                    STATE.concubines.sort((a, b) => a.rank - b.rank);
+                }
+            }
             
             // 2. 结算查案 (在新月份调用)
             resolveInvestigation();
@@ -4578,6 +4666,13 @@
             }
 
             // 9. 生成总结
+            let summaryTitle = "月度总结";
+            let summaryText = "";
+
+            if (birthMsg) {
+                summaryTitle = "喜得贵子";
+            }
+
             if (type === 'ai') {
                 // 提取最近的日志作为上下文
                 const recentLogs = STATE.player.logs.slice(0, 5).join("\n");
@@ -4587,10 +4682,11 @@
                     player: STATE.player.name,
                     rank: RANKS[STATE.player.rank].name,
                     inColdPalace: STATE.player.inColdPalace,
-                    recentEvents: recentLogs
+                    recentEvents: recentLogs,
+                    birthInfo: birthMsg // 传递生产信息给AI
                 };
                 
-                const systemPrompt = "你是一个宫斗游戏的故事叙述者。请根据玩家的当前状态和最近发生的事件，生成一段生动的月度总结（100字左右）。";
+                const systemPrompt = "你是一个宫斗游戏的故事叙述者。请根据玩家的当前状态和最近发生的事件，生成一段生动的月度总结（100字左右）。如果发生了生产事件，请重点描写。";
                 const userPrompt = JSON.stringify(context);
                 
                 document.getElementById('explore-title').innerText = "月度总结 (AI生成中...)";
@@ -4599,23 +4695,32 @@
                 
                 try {
                     const summary = await callAI(systemPrompt, userPrompt);
-                    document.getElementById('explore-title').innerText = "月度总结";
-                    document.getElementById('explore-text').innerText = summary;
+                    summaryText = summary;
                 } catch (e) {
-                    document.getElementById('explore-text').innerText = "AI生成失败，请查看生平记事。";
+                    summaryText = "AI生成失败，请查看生平记事。";
                 }
             } else {
                 // 系统简报
-                document.getElementById('explore-title').innerText = "月度总结";
-                document.getElementById('explore-text').innerHTML = `
+                summaryText = `
                     <p>时间流转，又是一月。</p>
                     <p>当前位份：${RANKS[STATE.player.rank].name}</p>
                     <p>当前圣宠：${STATE.player.favor}</p>
                     <p>本月收支：${salary > 0 ? '+' + salary : '无'}</p>
                     <p>宫中风云变幻，还需步步为营。</p>
                 `;
-                document.getElementById('explore-result-modal').style.display = 'block';
             }
+
+            if (birthMsg) {
+                summaryText = `<strong>【生产喜报】</strong><br>${birthMsg}<br><hr>` + summaryText;
+            }
+            
+            if (draftMsg) {
+                summaryText += draftMsg;
+            }
+
+            document.getElementById('explore-title').innerText = summaryTitle;
+            document.getElementById('explore-text').innerHTML = summaryText;
+            document.getElementById('explore-result-modal').style.display = 'block';
         }
 
         function updateConcubinesStatus() {
