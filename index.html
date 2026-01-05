@@ -3990,6 +3990,8 @@
 
             document.getElementById('val-favor').innerText = STATE.player.favor;
             document.getElementById('val-money').innerText = STATE.player.money;
+            document.getElementById('val-preg-rate').innerText = STATE.player.pregnancyRate + '%';
+            document.getElementById('preg-toggle').checked = STATE.player.pregnancyEnabled;
 
             const logContainer = document.getElementById('profile-log');
             if (STATE.player.logs.length > 0) {
